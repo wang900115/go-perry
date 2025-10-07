@@ -1,0 +1,4 @@
+github.com/contribsys/faktory v1.9.2 h1:lbNSh8SOsKopoRJn4Z9E/GiWrBwwK3XAUqAUizapQbg=
+github.com/contribsys/faktory v1.9.2/go.mod h1:SYpmpRfPjky9+aSJY2O80kdRWzfHKBVcPH9ngw603E4=
+github.com/contribsys/faktory_worker_go v1.7.0 h1:YSZRj/nSjn+2ms9ooHIOHAahHJehXutgD46b+0lHDP4=
+github.com/contribsys/faktory_worker_go v1.7.0/go.mod h1:JRw4PvanwLgX5IIQazw6W5zg/Rg7/Fg6YrkdH4gJJPc=

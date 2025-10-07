@@ -1,0 +1,5 @@
+
+2025-03-13T23:20:53.539+0800	[34minfo[0m	logger/main.go:36	自定義配置的文件	{"key": "value"}
+{"level":"info","time":"2025-03-13T23:21:30.703+0800","caller":"logger/main.go:36","msg":"自定義配置的文件","key":"value"}
+{"level":"info","time":"2025-03-13T23:21:34.444+0800","caller":"logger/main.go:36","msg":"自定義配置的文件","key":"value"}
+{"level":"info","time":"2025-03-13T23:31:29.702+0800","msg":"測試日誌","user":"Alice"}

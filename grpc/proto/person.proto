@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option go_package = "grpc/proto";
+
+package personservice;
+
+service PersonService {
+    // method name ( request message )      ( response message )
+    rpc Create(CreatePersonRequest) returns (PersonProfileResponse);
+    rpc Read(SinglePersonRequest) returns (PersonProfileResponse);
+    rpc Update(UpdatePersonRequest) returns (SuccessResponse);
+    rpc Delete(SinglePersonRequest) returns (SuccessResponse);
+}
+
+message CreatePersonRequest {
+    string name = 1;
+    string email = 2;
+    string phoneNumber = 3;
+}
+
+message PersonProfileResponse {
+    int32 id = 1;
+    string name = 2;
+    string email = 3;
+    string phoneNumber = 4;
+}
+
+message SinglePersonRequest {
+    int32 id = 1;
+}
+
+message UpdatePersonRequest {
+    int32 id = 1;
+    string name = 2;
+    string email = 3;
+    string phoneNumber = 4;
+}
+
+message SuccessResponse {
+    string response = 1;
+}
