@@ -1,9 +1,10 @@
-package main
+package wal
 
 import (
 	"bytes"
 	"encoding/binary"
 	"io"
+	"lsm/mem"
 	"os"
 	"path/filepath"
 	"sync"
@@ -30,7 +31,7 @@ func OpenWAL(dir string) (*WAL, error) {
 	}, nil
 }
 
-func (w *WAL) Append(key string, val Value) error {
+func (w *WAL) Append(key string, val mem.Value) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	var buf bytes.Buffer
@@ -57,7 +58,7 @@ func (w *WAL) Close() error {
 
 func (w *WAL) Path() string { return filepath.Join(w.dir, "wal.log") }
 
-func (w *WAL) ReplayInto(mem *MemTable) error {
+func (w *WAL) ReplayInto(mem *mem.MemTable) error {
 	f, err := os.Open(w.Path())
 	if err != nil {
 		if os.IsNotExist(err) {
