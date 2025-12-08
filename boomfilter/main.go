@@ -7,7 +7,7 @@ import (
 	"math"
 )
 
-type Bloom struct {
+type BoomFilter struct {
 	bitset []byte
 	m      uint // bit array size
 	k      uint // number of hash functions
@@ -23,27 +23,27 @@ func optimalK(m, n uint) uint {
 	return uint(math.Ceil((float64(m) / float64(n)) * math.Ln2))
 }
 
-func NewBloom(n uint, p float64) *Bloom {
+func NewBloom(n uint, p float64) *BoomFilter {
 	m := optimalM(n, p)
 	k := optimalK(m, n)
 
 	bits := make([]byte, (m+7)/8)
 
-	return &Bloom{
+	return &BoomFilter{
 		bitset: bits,
 		m:      m,
 		k:      k,
 	}
 }
 
-func (b *Bloom) Add(item []byte) {
+func (b *BoomFilter) Add(item []byte) {
 	for i := uint(0); i < b.k; i++ {
 		pos := b.hash(item, i) % b.m
 		b.setBit(pos)
 	}
 }
 
-func (b *Bloom) Exists(item []byte) bool {
+func (b *BoomFilter) Exists(item []byte) bool {
 	for i := uint(0); i < b.k; i++ {
 		pos := b.hash(item, i) % b.m
 		if !b.getBit(pos) {
@@ -53,19 +53,19 @@ func (b *Bloom) Exists(item []byte) bool {
 	return true
 }
 
-func (b *Bloom) setBit(pos uint) {
+func (b *BoomFilter) setBit(pos uint) {
 	byteIndex := pos / 8
 	bitIndex := pos % 8
 	b.bitset[byteIndex] |= 1 << bitIndex
 }
 
-func (b *Bloom) getBit(pos uint) bool {
+func (b *BoomFilter) getBit(pos uint) bool {
 	byteIndex := pos / 8
 	bitIndex := pos % 8
 	return (b.bitset[byteIndex] & (1 << bitIndex)) != 0
 }
 
-func (b *Bloom) hash(item []byte, seed uint) uint {
+func (b *BoomFilter) hash(item []byte, seed uint) uint {
 	h := fnv.New64a()
 	_, _ = h.Write(item)
 
