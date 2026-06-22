@@ -30,5 +30,5 @@ func main() {
 }
 
 func getOSThreadID() int {
-	return syscall.Gettid()
+	return syscall.Getppid()
 }
