@@ -1,0 +1,10 @@
+#!/bin/sh
+
+pwsh -NoProfile -ExecutionPolicy Bypass -File "scripts/sync-info.ps1"
+status=$?
+
+if [ $status -ne 0 ]; then
+  exit $status
+fi
+
+exit 0

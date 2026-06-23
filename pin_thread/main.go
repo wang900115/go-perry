@@ -3,8 +3,9 @@ package main
 import (
 	"runtime"
 	"sync"
-	"syscall"
 	"time"
+
+	"golang.org/x/sys/windows"
 )
 
 func main() {
@@ -30,5 +31,5 @@ func main() {
 }
 
 func getOSThreadID() int {
-	return syscall.Getppid()
+	return int(windows.GetCurrentThreadId())
 }

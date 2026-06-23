@@ -1,0 +1,10 @@
+#!/bin/sh
+
+pwsh -NoProfile -ExecutionPolicy Bypass -File "scripts/prepare-commit-message.ps1" "$1" "$2" "$3"
+status=$?
+
+if [ $status -ne 0 ]; then
+  exit $status
+fi
+
+exit 0
