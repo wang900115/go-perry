@@ -2,10 +2,10 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$infoPath = Join-Path $repoRoot 'info.md'
+$infoPath = Join-Path $repoRoot 'README.md'
 
 if (-not (Test-Path $infoPath)) {
-    Write-Error 'info.md not found at repository root.'
+    Write-Error 'README.md not found at repository root.'
 }
 
 Push-Location $repoRoot
@@ -69,9 +69,9 @@ try {
     }
 
     [System.IO.File]::WriteAllText($infoPath, $updated, [System.Text.UTF8Encoding]::new($false))
-    git add -- info.md | Out-Null
+    git add -- README.md | Out-Null
 
-    Write-Host ('Updated info.md with: ' + ($missing -join ', '))
+    Write-Host ('Updated README.md with: ' + ($missing -join ', '))
 }
 finally {
     Pop-Location

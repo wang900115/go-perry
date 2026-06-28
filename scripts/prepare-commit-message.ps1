@@ -45,7 +45,7 @@ function Get-TopLevelDirectories {
 }
 
 function Get-DefaultMessage {
-    $dirs = Get-TopLevelDirectories
+    $dirs = @(Get-TopLevelDirectories)
     if (-not $dirs -or $dirs.Count -eq 0) {
         return 'chore: update repository notes'
     }
