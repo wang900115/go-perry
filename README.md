@@ -79,7 +79,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `p2p` | Peer-to-peer networking experiments. |
 | `ipfs` | IPFS and decentralized storage experiments. |
 | `otel` | OpenTelemetry distributed tracing across services, including TraceID, SpanID, parent-child relationships, and context propagation. |
-| `logical_clock`| Including distributed common clock with lamport and vector. |
+| `logical_clock`| Including distributed common clock with lamport and vector and interval tree. |
 | `version-vector` | Version Vector experiments, including causal history tracking, Dotted Version Vectors, and causal/concurrent event detection in distributed systems. |
 
 ### 💽 Storage
