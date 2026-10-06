@@ -1,3 +1,3 @@
-module iouring
+module github.com/wang900115/go-perry/iouring
 
-go 1.26.3
+go 1.20

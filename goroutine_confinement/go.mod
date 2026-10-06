@@ -1,3 +1,3 @@
-module confinement
+module github.com/wang900115/go-perry/goroutine_confinement
 
-go 1.23.4
+go 1.20

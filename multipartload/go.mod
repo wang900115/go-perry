@@ -1,3 +1,3 @@
-module multipart
+module github.com/wang900115/go-perry/multipartload
 
-go 1.24.0
+go 1.20

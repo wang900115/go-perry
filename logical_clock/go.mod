@@ -1,3 +1,3 @@
-module logical_clock
+module github.com/wang900115/go-perry/logical_clock
 
-go 1.26.3
+go 1.20

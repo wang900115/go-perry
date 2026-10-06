@@ -1,5 +1,3 @@
-module pin_thread
+module github.com/wang900115/go-perry/pin_thread
 
-go 1.25.2
-
-require golang.org/x/sys v0.46.0
+go 1.20

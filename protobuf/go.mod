@@ -1,5 +1,3 @@
-module protobuf
+module github.com/wang900115/go-perry/protobuf
 
-go 1.24.0
-
-require google.golang.org/protobuf v1.36.6 // indirect
+go 1.20

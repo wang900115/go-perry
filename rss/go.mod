@@ -1,3 +1,3 @@
-module rss
+module github.com/wang900115/go-perry/rss
 
-go 1.24.0
+go 1.20

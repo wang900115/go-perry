@@ -1,3 +1,3 @@
-module mutex
+module github.com/wang900115/go-perry/goroutine_mutex
 
-go 1.23.4
+go 1.20

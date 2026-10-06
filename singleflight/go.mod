@@ -1,5 +1,3 @@
-module singleflight
+module github.com/wang900115/go-perry/singleflight
 
-go 1.25.1
-
-require golang.org/x/sync v0.17.0
+go 1.20
