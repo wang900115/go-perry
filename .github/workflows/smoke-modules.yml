@@ -1,0 +1,51 @@
+name: Smoke tests for submodules
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: List modules
+        id: list
+        run: |
+          git ls-files | grep '/go.mod$' | sed 's:/go.mod$::' > modules.txt
+          echo "Found modules:" && cat modules.txt
+
+      - name: Run go mod tidy and tests (non-committing)
+        run: |
+          set -euo pipefail
+          if [ ! -f modules.txt ]; then
+            echo "no modules found"
+            exit 0
+          fi
+          while IFS= read -r m; do
+            echo "\n=== $m ==="
+            if [ -d "$m" ]; then
+              pushd "$m" >/dev/null
+              echo "Running: go mod tidy (no commit)"
+              go mod tidy
+              echo "Running: go test ./..."
+              go test ./...
+              popd >/dev/null
+            else
+              echo "skip $m (not a dir)"
+            fi
+          done < modules.txt
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-results
+          path: modules.txt
