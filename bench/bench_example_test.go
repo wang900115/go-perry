@@ -1,11 +1,11 @@
 package bench
 
 import (
-    "testing"
+	"testing"
 )
 
 func BenchmarkSample(b *testing.B) {
-    for i := 0; i < b.N; i++ {
-        _ = i * i
-    }
+	for i := 0; i < b.N; i++ {
+		_ = i * i
+	}
 }
