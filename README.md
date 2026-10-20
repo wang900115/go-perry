@@ -25,6 +25,8 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `runtime` | Go runtime concepts and runtime behavior experiments. |
 | `unsafe` | `unsafe` package and low-level memory experiments. |
 |`coroutine` | Asymmetric coroutines and single-thread register-swapping experiments via raw runtime primitives. |
+| `swiss_table` | Go 1.24 version's hashmap mechanism |
+| `unique` | Experiments with the `unique` package for canonicalization (interning) and fast O(1) comparisons. |
 
 ### 🧵 Concurrency Patterns
 
