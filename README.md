@@ -25,7 +25,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `runtime` | Go runtime concepts and runtime behavior experiments. |
 | `unsafe` | `unsafe` package and low-level memory experiments. |
 |`coroutine` | Asymmetric coroutines and single-thread register-swapping experiments via raw runtime primitives. |
-| `swiss_table` | Go 1.24 version's hashmap mechanism |
+| `swisstable` | Go 1.24 version's hashmap mechanism |
 | `unique` | Experiments with the `unique` package for canonicalization (interning) and fast O(1) comparisons. |
 | `build_info` | Go build metadata experiments, including debug.ReadBuildInfo, VCS revision, vcs.modified, ldflags, reproducible builds, and build provenance. |
 
@@ -61,7 +61,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `ratelimit` | Rate limiting implementations and performance-related examples. |
 | `memcache` | Memcache usage and caching experiments. |
 | `zero-copy` | Linux zero-copy mechanisms and kernel data paths |
-| `direct-io` | Direct I/O experiments bypassing the OS page cache. |
+| `directio` | Direct I/O experiments bypassing the OS page cache. |
 
 ### 🌐 Networking
 
@@ -84,7 +84,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `ipfs` | IPFS and decentralized storage experiments. |
 | `otel` | OpenTelemetry distributed tracing across services, including TraceID, SpanID, parent-child relationships, and context propagation. |
 | `logical_clock`| Including distributed common clock with lamport and vector and interval tree. |
-| `version-vector` | Version Vector experiments, including causal history tracking, Dotted Version Vectors, and causal/concurrent event detection in distributed systems. |
+| `detector` | Version Vector experiments, including causal history tracking, Dotted Version Vectors, and causal/concurrent event detection in distributed systems. |
 
 ### 💽 Storage
 
@@ -123,7 +123,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `jwt` | JWT authentication and authorization examples. |
 | `paseto` | PASETO authentication and security examples. |
 | `schnorr` | Schnorr signatures and cryptography-related examples. |
-| `x509` | X.509 certificate parsing and inspection examples. |
+| `cert` | X.509 certificate parsing and inspection examples. |
 | `pqc` | Post-quantum cryptography examples using ML-KEM for shared-secret establishment and ML-DSA for digital signatures. |
 
 ### ⚙️ System Programming
