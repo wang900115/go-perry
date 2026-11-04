@@ -217,14 +217,6 @@ fix: correct channel example
 docs: update topic documentation
 ```
 
-The project also provides Git hooks that can help generate commit messages and update the topic list.
-
-Install them with:
-
-```powershell
-pwsh -File scripts/install-git-hooks.ps1
-```
-
 ---
 
 ## 7. Update AUTHORS.md
