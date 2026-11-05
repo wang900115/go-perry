@@ -48,6 +48,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `pipeline` | Pipeline-based concurrent data processing. |
 | `pool` | Resource pool and worker pool patterns. |
 | `singleflight` | Request deduplication using `singleflight`. |
+| `sync_cond` | Condition variables with `sync.Cond`: `Wait`/`Signal`/`Broadcast` and a bounded queue built on two conds. |
 | `sync_map` | `sync.Map` examples. |
 | `worker_pool` | Worker pool pattern examples. |
 | `workerpool` | Additional worker pool implementations and experiments. |
