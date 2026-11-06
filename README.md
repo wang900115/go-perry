@@ -50,6 +50,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `singleflight` | Request deduplication using `singleflight`. |
 | `sync_cond` | Condition variables with `sync.Cond`: `Wait`/`Signal`/`Broadcast` and a bounded queue built on two conds. |
 | `sync_map` | `sync.Map` examples. |
+| `sync_once` | `sync.Once` and Go 1.21 `OnceFunc`/`OnceValue`/`OnceValues`: one-time lazy init, its atomic fast path, and panic/error caching behavior. |
 | `worker_pool` | Worker pool pattern examples. |
 | `workerpool` | Additional worker pool implementations and experiments. |
 
