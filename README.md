@@ -51,6 +51,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `sync_cond` | Condition variables with `sync.Cond`: `Wait`/`Signal`/`Broadcast` and a bounded queue built on two conds. |
 | `sync_map` | `sync.Map` examples. |
 | `sync_once` | `sync.Once` and Go 1.21 `OnceFunc`/`OnceValue`/`OnceValues`: one-time lazy init, its atomic fast path, and panic/error caching behavior. |
+| `sync_atomic` | `sync/atomic` typed atomics: lock-free counters, CAS loops, `atomic.Pointer` copy-on-write config hot-swap, and Go 1.23 `Or`/`And` flags. |
 | `worker_pool` | Worker pool pattern examples. |
 | `workerpool` | Additional worker pool implementations and experiments. |
 
