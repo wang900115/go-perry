@@ -129,6 +129,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `schnorr` | Schnorr signatures and cryptography-related examples. |
 | `cert` | X.509 certificate parsing and inspection examples. |
 | `pqc` | Post-quantum cryptography examples using ML-KEM for shared-secret establishment and ML-DSA for digital signatures. |
+| `os_root` | Go 1.24/1.25 `os.Root`: traversal-resistant file access that blocks `../` and symlink escapes, compared with naive `filepath.Join` and `filepath.IsLocal`. |
 
 ### ⚙️ System Programming
 
