@@ -152,6 +152,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `rss` | RSS generation and parsing examples. |
 | `test` | Go testing examples and experiments. |
 | `embed-demo` | Examples using Go's `embed` feature. |
+| `error_wrapping` | Error wrapping with `%w`, `errors.Is`/`As`, Go 1.26 `errors.AsType`, custom `Is`/`Unwrap`, multi-error trees via `errors.Join`, and the typed-nil pitfall. |
 
 The topic list is continuously evolving. New topics are welcome.
 
