@@ -32,7 +32,7 @@ Parts 2-3 depend on timing (tens of milliseconds of margin). On a very loaded ma
 
 ## Common pitfalls
 1. **`time.After` in a hot loop**: since Go 1.23 it is collected, but it still allocates a new timer on every iteration, and it resets the timeout on every loop iteration (including iterations triggered by other cases). Use one `NewTimer` + `Reset` when you mean an idle timeout.
-2. **Copying old drain idioms into Go 1.23+ code**: `if !t.Stop() { <-t.C }` can now **block forever**, because after `Stop` the channel is guaranteed to be empty. Just call `Stop`/`Reset`. (The idiom is still needed if your module's `go.mod` is below 1.23.)
+2. **Copying old drain idioms into Go 1.23+ code**: `if !t.Stop() { <-t.C }` is no longer needed; just call `Stop`/`Reset`. It is also dangerous: if the value was already received earlier (e.g. in another `select` case), `Stop` returns `false` and `<-t.C` blocks forever (this was already true before 1.23). Keep the idiom only if your module's `go.mod` is below 1.23.
 3. **Assuming `AfterFunc`'s `Stop` waits for `f`**: if `f` already started, `Stop` returns `false` and does **not** wait for `f` to finish. `f` runs in another goroutine, so shared data needs synchronization (the example uses `atomic.Int32`).
 4. **Forgetting `Ticker.Stop`**: since 1.23 an unreferenced ticker is collected, but a ticker still referenced by a running goroutine keeps ticking. Always `defer tk.Stop()`.
 
