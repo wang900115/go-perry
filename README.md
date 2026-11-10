@@ -52,6 +52,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `sync_map` | `sync.Map` examples. |
 | `sync_once` | `sync.Once` and Go 1.21 `OnceFunc`/`OnceValue`/`OnceValues`: one-time lazy init, its atomic fast path, and panic/error caching behavior. |
 | `sync_atomic` | `sync/atomic` typed atomics: lock-free counters, CAS loops, `atomic.Pointer` copy-on-write config hot-swap, and Go 1.23 `Or`/`And` flags. |
+| `time_timer` | `time.Timer`/`Ticker`/`AfterFunc` and the Go 1.23 timer semantics: synchronous timer channels, no stale values after `Stop`/`Reset`, dropped ticks. |
 | `worker_pool` | Worker pool pattern examples. |
 | `workerpool` | Additional worker pool implementations and experiments. |
 
