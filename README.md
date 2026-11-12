@@ -155,6 +155,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `embed-demo` | Examples using Go's `embed` feature. |
 | `error_wrapping` | Error wrapping with `%w`, `errors.Is`/`As`, Go 1.26 `errors.AsType`, custom `Is`/`Unwrap`, multi-error trees via `errors.Join`, and the typed-nil pitfall. |
 | `defer_panic_recover` | `defer` order and argument evaluation, `panic`/`recover` rules, converting panics to errors with named results, `panic(nil)` (`*runtime.PanicNilError`), `runtime.Goexit`, and recovering inside goroutines. |
+| `io_reader_writer` | `io.Reader`/`io.Writer` contracts (data returned with `io.EOF`), custom readers and writers, `TeeReader`/`MultiWriter`/`LimitReader`, the `WriterTo` fast path in `io.Copy`, and `io.Pipe` with `CloseWithError`. |
 
 The topic list is continuously evolving. New topics are welcome.
 
