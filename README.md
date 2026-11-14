@@ -157,6 +157,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `defer_panic_recover` | `defer` order and argument evaluation, `panic`/`recover` rules, converting panics to errors with named results, `panic(nil)` (`*runtime.PanicNilError`), `runtime.Goexit`, and recovering inside goroutines. |
 | `io_reader_writer` | `io.Reader`/`io.Writer` contracts (data returned with `io.EOF`), custom readers and writers, `TeeReader`/`MultiWriter`/`LimitReader`, the `WriterTo` fast path in `io.Copy`, and `io.Pipe` with `CloseWithError`. |
 | `slog_structured` | Structured logging with `log/slog`: Text/JSON handlers, typed attrs, `With`/`WithGroup`, `LevelVar` dynamic levels, lazy and redacted values via `LogValuer`, a context-aware custom `Handler`, and Go 1.26 `NewMultiHandler`. |
+| `json_encoding` | `encoding/json` struct tags, Go 1.24 `omitzero` vs `omitempty`, custom `MarshalJSON`/`UnmarshalJSON`, `json.RawMessage` tagged unions, `DisallowUnknownFields`, and large-number precision with `UseNumber`. |
 
 The topic list is continuously evolving. New topics are welcome.
 
