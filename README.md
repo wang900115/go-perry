@@ -76,6 +76,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `grpc` | gRPC client/server examples with Protocol Buffers. |
 | `graphql` | GraphQL server examples. |
 | `multipartload` | Multipart file upload client/server examples. |
+| `http_servemux` | Go 1.22+ `net/http.ServeMux` routing: method patterns, `{id}`/`{path...}`/`{$}` wildcards, `PathValue`, most-specific-wins precedence, automatic 405 with `Allow`, redirects, registration-time conflict panics, and Go 1.23 `r.Pattern`. |
 
 ### 🔗 Distributed Systems
 
