@@ -110,6 +110,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `boomfilter` | Bloom Filter implementation examples. |
 | `iter` | Iterator patterns and iterator-style programming. |
 | `generic_hash` | Generic hash table implementation and hash-based data structure experiments. |
+| `slice_internals` | How slices work: header (ptr/len/cap), shared backing arrays, `append` aliasing and the `s[lo:hi:max]` / `slices.Clip` fix, `runtime.growslice` growth and size classes, Go 1.22 `slices.Delete` tail zeroing, and memory retention by sub-slices. |
 
 ### 📦 Serialization
 
