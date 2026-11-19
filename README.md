@@ -111,6 +111,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `iter` | Iterator patterns and iterator-style programming. |
 | `generic_hash` | Generic hash table implementation and hash-based data structure experiments. |
 | `slice_internals` | How slices work: header (ptr/len/cap), shared backing arrays, `append` aliasing and the `s[lo:hi:max]` / `slices.Clip` fix, `runtime.growslice` growth and size classes, Go 1.22 `slices.Delete` tail zeroing, and memory retention by sub-slices. |
+| `string_utf8` | Strings as read-only bytes: `len` vs rune count, `range` decoding UTF-8, invalid bytes and `U+FFFD`, `[]byte`/`[]rune` conversion costs, rune-safe truncation, `strings.Builder` vs `+=`, and combining characters. |
 
 ### 📦 Serialization
 
