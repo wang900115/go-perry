@@ -163,6 +163,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `slog_structured` | Structured logging with `log/slog`: Text/JSON handlers, typed attrs, `With`/`WithGroup`, `LevelVar` dynamic levels, lazy and redacted values via `LogValuer`, a context-aware custom `Handler`, and Go 1.26 `NewMultiHandler`. |
 | `json_encoding` | `encoding/json` struct tags, Go 1.24 `omitzero` vs `omitempty`, custom `MarshalJSON`/`UnmarshalJSON`, `json.RawMessage` tagged unions, `DisallowUnknownFields`, and large-number precision with `UseNumber`. |
 | `text_template` | `text/template` and `html/template`: actions, whitespace trimming, pipelines, `FuncMap`, `define`/`block` with `Clone`, `missingkey=error`, partial output on errors, and context-aware auto-escaping. |
+| `struct_embedding` | Struct embedding as composition: field/method promotion, method sets when embedding `T` vs `*T`, shadowing is not overriding, the depth rule and ambiguous selectors, embedding an interface as a decorator, the `sync.Mutex` API leak, and JSON flattening. |
 
 The topic list is continuously evolving. New topics are welcome.
 
