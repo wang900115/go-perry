@@ -28,6 +28,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `swisstable` | Go 1.24 version's hashmap mechanism |
 | `unique` | Experiments with the `unique` package for canonicalization (interning) and fast O(1) comparisons. |
 | `weak_pointer` | Go 1.24 `weak` package: weak pointers that do not keep objects alive, combined with `runtime.AddCleanup` for a GC-aware cache. |
+| `interface_values` | Interface values as (type, data) word pairs: `eface`/`iface` and itabs, boxing copies and allocations, type assertions and type switches, run-time panics when comparing uncomparable dynamic types, the typed-nil trap, and compile-time satisfaction checks. |
 | `build_info` | Go build metadata experiments, including debug.ReadBuildInfo, VCS revision, vcs.modified, ldflags, reproducible builds, and build provenance. |
 
 ### 🧵 Concurrency Patterns
