@@ -1,19 +1,18 @@
 # interface_values
 
-What a Go interface value really stores.
+What an interface value really is in Go.
 
-- An interface value is two words: a type word (`itab` for non-empty interfaces, `*_type` for `any`) and a data word.
-- Assigning to an interface copies the value; store a pointer if you want shared state.
-- Boxing may allocate: pointers, zero-sized values and small integers (0-255) do not; larger ints and strings usually do.
-- Type assertions (`v.(T)`, `v.(I)`) and type switches read the type word; the single-value form panics on mismatch.
-- Optional interfaces (`io.WriterTo`, `http.Flusher`) are discovered by assertion, and wrappers hide them.
-- `==` on interfaces compares dynamic type and value, and panics if the dynamic type is not comparable.
-- A nil pointer stored in an interface makes a non-nil interface.
+- An interface value is two words: a type word (`*_type` for `any`, `*itab` for non-empty interfaces) and a data word.
+- Storing a value in an interface copies it; non-pointer values usually allocate (ints `< 256` and zero-size values do not).
+- `x.(T)` panics on mismatch, `v, ok := x.(T)` does not; interface-to-interface assertions check the method set at run time.
+- In a type switch case with several types, the variable keeps the interface type.
+- Comparing interfaces whose dynamic type is a slice/map/func panics at run time (also as map keys).
+- A nil pointer stored in an interface makes a non-nil interface (typed nil).
 - `var _ I = (*T)(nil)` checks interface satisfaction at compile time.
 
 ```bash
 go run .
-go build -gcflags=-m . 2>&1 | grep "escapes to heap"
+go build -gcflags=-m . 2>&1 | grep escapes
 ```
 
 See [LESSON.md](LESSON.md) for the full lesson.

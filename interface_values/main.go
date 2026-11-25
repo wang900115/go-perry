@@ -1,7 +1,6 @@
-// Interface values in Go: what an interface really stores.
-//
-// Run: go run .
-// Allocations: go build -gcflags=-m . 2>&1 | grep "escapes to heap"
+// Interface values in Go: what an interface value really is (a type word plus
+// a data word), how boxing allocates, type assertions and type switches,
+// comparing interfaces, and the typed-nil trap.
 package main
 
 import (
@@ -13,178 +12,140 @@ import (
 	"unsafe"
 )
 
+// eface mirrors the runtime layout of an empty interface (runtime.eface).
+// This is an implementation detail used only for teaching; never rely on it.
+type eface struct {
+	typ  unsafe.Pointer // *runtime._type: the dynamic type
+	data unsafe.Pointer // pointer to the value (or the value itself for pointer-shaped types)
+}
+
+func words(v any) eface { return *(*eface)(unsafe.Pointer(&v)) }
+
 type Shape interface {
 	Area() float64
 }
 
-type Square struct{ Side float64 }
+type Rect struct{ W, H float64 }
 
-func (s Square) Area() float64 { return s.Side * s.Side }
+func (r Rect) Area() float64 { return r.W * r.H }
 
 type Circle struct{ R float64 }
 
-// Pointer receiver: only *Circle has Area in its method set.
-func (c *Circle) Area() float64 { return 3 * c.R * c.R }
+func (c *Circle) Area() float64 { return 3 * c.R * c.R } // pointer receiver, pi ~ 3 to keep output short
 
-// Compile-time checks: the build fails if a type stops satisfying Shape.
+// Compile-time checks: the build fails if the type stops satisfying Shape.
 var (
-	_ Shape = Square{}
+	_ Shape = Rect{}
 	_ Shape = (*Circle)(nil)
-	// _ Shape = Circle{} // compile error: Area has pointer receiver
+	// _ Shape = Circle{} // does not compile: Area has a pointer receiver
 )
 
-// eface mirrors runtime.eface (the layout of an `any` value).
-// This is for illustration only; never rely on it in real code.
-type eface struct {
-	typ  unsafe.Pointer
-	data unsafe.Pointer
+type MyErr struct{}
+
+func (*MyErr) Error() string { return "my error" }
+
+func mayFail(fail bool) error {
+	var p *MyErr // typed nil pointer
+	if fail {
+		p = &MyErr{}
+	}
+	return p // BUG: a non-nil interface holding a nil *MyErr when fail == false
 }
 
-// 1. An interface value is two words: (type, data).
-func twoWords() {
-	fmt.Println("== 1. an interface is two words ==")
-	var s Shape
-	var a any
-	fmt.Println("  sizeof(Shape) =", unsafe.Sizeof(s), " sizeof(any) =", unsafe.Sizeof(a))
-
-	a = 42
-	e := (*eface)(unsafe.Pointer(&a))
-	fmt.Println("  any(42): type word set =", e.typ != nil, ", data word set =", e.data != nil)
-	fmt.Println("  *(*int)(data) =", *(*int)(e.data))
+func mayFailFixed(fail bool) error {
+	if fail {
+		return &MyErr{}
+	}
+	return nil // a truly nil interface: both words are nil
 }
 
-// 2. Storing a value copies it. Later changes to the original are not seen.
-func copiesValue() {
-	fmt.Println("== 2. assignment copies the value ==")
-	sq := Square{Side: 2}
-	var s Shape = sq
-	sq.Side = 10
-	fmt.Println("  original area =", sq.Area(), " interface area =", s.Area())
-
-	c := &Circle{R: 1}
-	var s2 Shape = c // copies the pointer, not the Circle
-	c.R = 2
-	fmt.Println("  pointer stored: interface sees the change, area =", s2.Area())
-}
-
-// 3. Boxing can allocate. Small integers and zero-sized values do not.
-var sink any
-
-func boxing() {
-	fmt.Println("== 3. boxing and allocation ==")
-	// Values are computed at run time so the compiler cannot use a static copy.
-	i := 0
-	small := testing.AllocsPerRun(1000, func() { i = (i + 1) % 200; sink = i })  // 0..199
-	big := testing.AllocsPerRun(1000, func() { i = 1000 + (i+1)%200; sink = i }) // >= 256
-	words := strings.Fields("alpha beta gamma")
-	str := testing.AllocsPerRun(1000, func() { i = (i + 1) % 3; sink = words[i] }) // string header
-	p := &Square{Side: 1}
-	ptr := testing.AllocsPerRun(1000, func() { sink = p })            // pointer fits the data word
-	empty := testing.AllocsPerRun(1000, func() { sink = struct{}{} }) // zero-sized
-	fmt.Printf("  small int (<256): %.0f allocs/op\n", small)
-	fmt.Printf("  big int:          %.0f allocs/op\n", big)
-	fmt.Printf("  string:           %.0f allocs/op\n", str)
-	fmt.Printf("  pointer:          %.0f allocs/op\n", ptr)
-	fmt.Printf("  struct{}{}:       %.0f allocs/op\n", empty)
-}
-
-// 4. Type assertions and type switches read the type word.
 func describe(v any) string {
 	switch x := v.(type) {
 	case nil:
 		return "nil interface"
 	case int, int64:
 		return fmt.Sprintf("integer %v (x is still any here: %T)", x, x)
-	case fmt.Stringer:
-		return "Stringer: " + x.String()
+	case string:
+		return fmt.Sprintf("string of len %d", len(x))
+	case Shape:
+		return fmt.Sprintf("Shape with area %.0f", x.Area())
 	case error:
 		return "error: " + x.Error()
 	default:
-		return fmt.Sprintf("other %T", x)
+		return fmt.Sprintf("other type %T", x)
 	}
-}
-
-type Celsius float64
-
-func (c Celsius) String() string { return fmt.Sprintf("%.1f°C", float64(c)) }
-
-func assertions() {
-	fmt.Println("== 4. type assertions and type switches ==")
-	var s Shape = Square{Side: 3}
-
-	sq, ok := s.(Square)
-	fmt.Println("  s.(Square) ->", sq, ok)
-	_, ok = s.(*Circle)
-	fmt.Println("  s.(*Circle) ok =", ok)
-
-	// Asserting to another interface: checks the method set at run time.
-	_, ok = s.(fmt.Stringer)
-	fmt.Println("  s.(fmt.Stringer) ok =", ok)
-
-	for _, v := range []any{nil, 5, Celsius(21.5), errors.New("boom"), []int{1}} {
-		fmt.Println("  describe:", describe(v))
-	}
-
-	defer func() { fmt.Println("  recovered:", recover()) }()
-	_ = s.(*Circle) // single-value form panics on mismatch
-}
-
-// 5. Optional interfaces: io.Copy upgrades behavior if the value has more methods.
-type plainReader struct{ r io.Reader }
-
-func (p plainReader) Read(b []byte) (int, error) { return p.r.Read(b) }
-
-func optionalInterfaces() {
-	fmt.Println("== 5. optional interfaces ==")
-	var r io.Reader = strings.NewReader("data")
-	_, isWT := r.(io.WriterTo)
-	fmt.Println("  *strings.Reader implements io.WriterTo:", isWT)
-	_, isWT = io.Reader(plainReader{r}).(io.WriterTo)
-	fmt.Println("  wrapper implements io.WriterTo:      ", isWT, "(wrapping hides methods)")
-}
-
-// 6. Comparing interfaces: equal if same dynamic type AND equal values.
-// If the dynamic type is not comparable, == panics at run time.
-func comparison() {
-	fmt.Println("== 6. comparing interface values ==")
-	var a, b any = 1, 1
-	var c any = int64(1)
-	fmt.Println("  any(1) == any(1):        ", a == b)
-	fmt.Println("  any(1) == any(int64(1)): ", a == c)
-
-	m := map[any]string{}
-	m[1] = "int"
-	m["1"] = "string"
-	fmt.Println("  map[any] with 1 and \"1\": len =", len(m))
-
-	defer func() { fmt.Println("  recovered:", recover()) }()
-	var x, y any = []int{1}, []int{1}
-	fmt.Println(x == y) // panics: slices are not comparable
-}
-
-// 7. nil interface vs interface holding a nil pointer.
-func find(ok bool) Shape {
-	var c *Circle
-	if ok {
-		c = &Circle{R: 1}
-	}
-	return c // always a non-nil interface: the type word is *Circle
-}
-
-func nilInterface() {
-	fmt.Println("== 7. nil interface vs typed nil ==")
-	var s Shape
-	fmt.Println("  zero Shape == nil:", s == nil)
-	r := find(false)
-	fmt.Printf("  find(false) == nil: %v (dynamic type %T)\n", r == nil, r)
 }
 
 func main() {
-	twoWords()
-	copiesValue()
-	boxing()
-	assertions()
-	optionalInterfaces()
-	comparison()
-	nilInterface()
+	fmt.Println("== 1. An interface value is two words ==")
+	fmt.Println("sizeof(any)   =", unsafe.Sizeof(any(nil)))
+	fmt.Println("sizeof(Shape) =", unsafe.Sizeof(Shape(nil)))
+	var empty any
+	w := words(empty)
+	fmt.Println("nil any: typ == nil:", w.typ == nil, "data == nil:", w.data == nil)
+	a, b := words(Rect{1, 2}), words(Rect{3, 4})
+	fmt.Println("same dynamic type -> same type word:", a.typ == b.typ)
+	fmt.Println("different values -> different data words:", a.data != b.data)
+	c := &Circle{R: 1}
+	fmt.Println("pointer stored directly in data word:", words(c).data == unsafe.Pointer(c))
+
+	fmt.Println("\n== 2. Boxing copies the value ==")
+	r := Rect{W: 2, H: 3}
+	var s Shape = r // copy of r is stored in the interface
+	r.W = 100
+	fmt.Println("r.Area() =", r.Area(), " s.Area() =", s.Area())
+
+	fmt.Println("\n== 3. Boxing may allocate ==")
+	var sink any
+	big, small := 1000, 0
+	// The values change on every run so the compiler cannot box a constant at build time.
+	fmt.Println("allocs any(int >= 256):", testing.AllocsPerRun(100, func() { big++; sink = big }))
+	fmt.Println("allocs any(int < 256): ", testing.AllocsPerRun(100, func() { small = (small + 1) % 200; sink = small }))
+	fmt.Println("allocs any(Rect):      ", testing.AllocsPerRun(100, func() { sink = r }))
+	fmt.Println("allocs any(*Circle):   ", testing.AllocsPerRun(100, func() { sink = c }))
+	_ = sink
+
+	fmt.Println("\n== 4. Type assertions ==")
+	var x any = "hello"
+	str, ok := x.(string)
+	fmt.Printf("x.(string) -> %q, %v\n", str, ok)
+	num, ok := x.(int)
+	fmt.Printf("x.(int)    -> %d, %v (zero value, no panic)\n", num, ok)
+	func() {
+		defer func() { fmt.Println("recovered:", recover()) }()
+		_ = x.(int) // single-result form panics on mismatch
+	}()
+	// Interface-to-interface assertion: checked at run time via the method set.
+	var rd io.Reader = strings.NewReader("abc")
+	_, isWriterTo := rd.(io.WriterTo)
+	_, isWriter := rd.(io.Writer)
+	fmt.Println("strings.Reader is io.WriterTo:", isWriterTo, " io.Writer:", isWriter)
+
+	fmt.Println("\n== 5. Type switch ==")
+	for _, v := range []any{nil, 42, int64(5), "go", Rect{2, 2}, &Circle{1}, Circle{1}, errors.New("boom"), 3.14} {
+		fmt.Println(describe(v))
+	}
+
+	fmt.Println("\n== 6. Comparing interfaces ==")
+	var i1, i2 any = 1, 1
+	var i3 any = int64(1)
+	fmt.Println("any(1) == any(1):       ", i1 == i2)
+	fmt.Println("any(1) == any(int64(1)):", i1 == i3, "(different dynamic types)")
+	func() {
+		defer func() { fmt.Println("recovered:", recover()) }()
+		var s1, s2 any = []int{1}, []int{1}
+		fmt.Println(s1 == s2) // compiles, panics at run time
+	}()
+	m := map[any]string{}
+	func() {
+		defer func() { fmt.Println("recovered:", recover()) }()
+		m[[]int{1}] = "slice key" // same panic: map keys are hashed via the dynamic type
+	}()
+
+	fmt.Println("\n== 7. The typed-nil trap ==")
+	err := mayFail(false)
+	fmt.Println("err == nil:", err == nil, " dynamic type:", fmt.Sprintf("%T", err))
+	ew := words(err)
+	fmt.Println("type word nil:", ew.typ == nil, " data word nil:", ew.data == nil)
+	fmt.Println("fixed: err == nil:", mayFailFixed(false) == nil)
 }

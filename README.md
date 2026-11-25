@@ -28,6 +28,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `swisstable` | Go 1.24 version's hashmap mechanism |
 | `unique` | Experiments with the `unique` package for canonicalization (interning) and fast O(1) comparisons. |
 | `weak_pointer` | Go 1.24 `weak` package: weak pointers that do not keep objects alive, combined with `runtime.AddCleanup` for a GC-aware cache. |
+| `interface_values` | Interface values as (type, data) word pairs: `eface`/`iface` and itabs, boxing copies and allocations, type assertions and type switches, run-time panics when comparing uncomparable dynamic types, the typed-nil trap, and compile-time satisfaction checks. |
 | `build_info` | Go build metadata experiments, including debug.ReadBuildInfo, VCS revision, vcs.modified, ldflags, reproducible builds, and build provenance. |
 
 ### 🧵 Concurrency Patterns
@@ -113,6 +114,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `slice_internals` | How slices work: header (ptr/len/cap), shared backing arrays, `append` aliasing and the `s[lo:hi:max]` / `slices.Clip` fix, `runtime.growslice` growth and size classes, Go 1.22 `slices.Delete` tail zeroing, and memory retention by sub-slices. |
 | `string_utf8` | Strings as read-only bytes: `len` vs rune count, `range` decoding UTF-8, invalid bytes and `U+FFFD`, `[]byte`/`[]rune` conversion costs, rune-safe truncation, `strings.Builder` vs `+=`, and combining characters. |
 | `generics_constraints` | Generics: type parameters and inference, constraints as type sets (`any`, `comparable`, `cmp.Ordered`, unions, `~`), the `S ~[]E` pattern, generic types whose methods cannot add type parameters, inference limits, `comparable` run-time panics with interfaces, and Go 1.26 self-referential constraints. |
+| `map_semantics` | Map language semantics: `nil` map reads vs write panics, pointer-like sharing and `maps.Clone`, comma-ok lookups, randomized iteration order and `slices.Sorted(maps.Keys(m))`, non-addressable elements, mutation during `range`, NaN keys and `clear`, the set idiom, and the unrecoverable concurrent-write fatal error. |
 
 ### 📦 Serialization
 

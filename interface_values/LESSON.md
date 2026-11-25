@@ -1,201 +1,155 @@
 # Interface Values
 
-> Go version used: `go1.26.3`.
+> Go version used: `go1.26.3`. Runs on Windows, macOS and Linux with the standard toolchain (amd64/arm64; the `unsafe` peek assumes the gc compiler).
 
 ## Why learn this
 
-Interfaces are the main abstraction tool in Go, and you already use them everywhere:
+Interfaces are the backbone of Go APIs: `error`, `io.Reader`/`io.Writer`, `http.Handler`, `fmt.Stringer`, `sort.Interface`, `any` in `json.Unmarshal`.
+Knowing what an interface value *is* explains a set of real bugs and costs:
 
-- `error`, `io.Reader`/`io.Writer`, `fmt.Stringer`, `http.Handler`, `sort.Interface`
-- `any` parameters in `fmt.Println`, `encoding/json`, `slog` attributes, `context.WithValue`
-- Mocks and dependency injection in tests
-- Optional capabilities: `io.Copy` checks for `io.WriterTo`/`io.ReaderFrom`, `net/http` checks for `http.Flusher`
-
-Knowing what an interface value *is* at run time explains several real bugs and costs:
-why `err != nil` is true for a nil pointer, why `==` can panic, why `fmt.Println(x)` may allocate,
-and why wrapping a `ResponseWriter` can silently break streaming.
+- `if err != nil` is true even though you "returned nil" (typed nil).
+- `map[any]T` or `==` on interfaces panics at run time.
+- Passing small structs as `any` (logging, `fmt.Println`, `context.WithValue`) allocates.
+- `io.Copy` gets faster when your type implements `io.WriterTo` (an interface-to-interface assertion).
 
 ## Core concepts
 
-### 1. An interface value is two words
+### 1. An interface value is two machine words
 
-The spec says an interface variable holds a *dynamic type* and a *dynamic value*
-([spec: Interface types](https://go.dev/ref/spec#Interface_types),
-[spec: Variables](https://go.dev/ref/spec#Variables)). The gc runtime stores this as two machine words
-(see `src/runtime/runtime2.go`):
+An interface value holds a **dynamic type** and a **dynamic value** ([spec: Interface types](https://go.dev/ref/spec#Interface_types), [spec: Variables](https://go.dev/ref/spec#Variables)).
+In the gc runtime (`runtime/runtime2.go`):
 
-```go
-type iface struct { // non-empty interface, e.g. io.Reader
-    tab  *itab          // (interface type, concrete type, method table)
-    data unsafe.Pointer // pointer to the value (or the value itself if it is pointer-shaped)
-}
-type eface struct { // empty interface: any
-    _type *_type
-    data  unsafe.Pointer
-}
-```
+- `any` is an `eface`: `{_type *_type, data unsafe.Pointer}`.
+- A non-empty interface (e.g. `Shape`) is an `iface`: `{tab *itab, data unsafe.Pointer}`. The `itab` holds the dynamic type plus a table of function pointers for the interface's methods, so a method call is one indirect call.
+- itabs are built lazily at run time and cached in a global hash table (`runtime/iface.go`), so the second conversion of the same (interface, type) pair is cheap. Compile-time-known pairs are emitted statically by the compiler.
 
-- `itab` caches the concrete type and the function pointers for the interface's methods.
-  Calling `r.Read(p)` is: load `tab`, load the method pointer, call it with `data` as the receiver.
-  This is "dynamic dispatch". The runtime builds an `itab` the first time a (interface, type) pair is needed
-  and caches it in a global hash table.
-- `any` has no methods, so it only needs the type descriptor.
-- The layout is an implementation detail of the gc compiler, not part of the language. The example reads it with
-  `unsafe` only to show it; never depend on it.
+The example prints `unsafe.Sizeof(any(nil)) == 16` on 64-bit platforms and peeks at the two words with `unsafe`. This layout is an implementation detail: never depend on it in real code.
 
-### 2. Assignment copies the value
+### 2. Boxing: storing a value in an interface copies it
 
-`var s Shape = sq` copies `sq` into the interface. Changing `sq` afterwards does not change `s`.
-If you store a pointer, the pointer is copied, so both refer to the same object.
-You cannot modify the value inside an interface in place: `s.(Square).Side = 1` does not compile.
+Assigning `r` to `var s Shape = r` copies `r`. Later changes to `r` are not visible through `s`.
+The data word must be a pointer, so:
 
-### 3. Boxing and allocation
+- **Pointer-shaped** types (`*T`, `map`, `chan`, `func`, single-pointer structs) are stored *directly* in the data word: no allocation.
+- Other values are copied to the heap by `runtime.convT*` helpers: usually **one allocation**.
+- Optimizations (implementation details, verified on go1.26.3 by the example): integers `< 256` point into a static table `runtime.staticuint64s`; zero-size values point at `runtime.zerobase`; constants can be boxed into read-only data at compile time.
 
-The data word is one pointer. If the value is not pointer-shaped, the compiler calls a runtime helper
-(`convT64`, `convTstring`, `convT`, ... in `src/runtime/iface.go`) that usually copies the value to the heap.
-Exceptions in the current runtime:
+### 3. Type assertions
 
-- pointers, maps, channels, funcs, and single-pointer structs: stored directly, no allocation
-- zero-sized values: point to a shared `zerobase`
-- integers 0–255 (single byte-sized values): point into a static table `staticuint64s`
-- constants and read-only values: the compiler may point to static data
+- `v, ok := x.(T)` never panics; on failure `v` is the zero value of `T`.
+- `v := x.(T)` panics with `*runtime.TypeAssertionError` on failure.
+- If `T` is a concrete type, the check is a single comparison of the type word.
+- If `T` is an interface, the runtime checks the dynamic type's method set (cached via itabs). This is how `io.Copy` discovers `WriterTo`/`ReaderFrom`.
 
-These are optimizations, not guarantees, and they may change between versions. Use
-`testing.AllocsPerRun` or `go build -gcflags=-m` to check real code.
+([spec: Type assertions](https://go.dev/ref/spec#Type_assertions))
 
-### 4. Method sets decide satisfaction
-
-A type `T` satisfies an interface if its **method set** contains all the methods
-([spec: Method sets](https://go.dev/ref/spec#Method_sets)).
-The method set of `T` contains value-receiver methods; the method set of `*T` contains both.
-So if `Area` has a pointer receiver, `*Circle` is a `Shape` but `Circle` is not.
-
-Use a compile-time assertion so the build breaks when a type stops satisfying an interface:
+### 4. Type switches
 
 ```go
-var _ Shape = (*Circle)(nil)
+switch x := v.(type) {
+case int, int64: // more than one type: x keeps the type of v (any)
+case string:     // exactly one type: x is a string
+case nil:        // v is a nil interface
+}
 ```
 
-### 5. Type assertions and type switches
+Cases are tried in order, so put specific interfaces before broader ones (`Shape` before `error`, etc.).
+([spec: Type switches](https://go.dev/ref/spec#Type_switches))
 
-- `x.(T)` with a concrete `T`: compares the type word with `T`'s descriptor (cheap pointer compare).
-- `x.(I)` with an interface `I`: checks at run time whether the dynamic type has all of `I`'s methods
-  (cached `itab` lookup). This is how **optional interfaces** work.
-- `v, ok := x.(T)` never panics; `v := x.(T)` panics with `*runtime.TypeAssertionError`.
-- In a type switch, a `case` with one type gives `x` that type; a `case` listing several types (`case int, int64`)
-  leaves `x` with the switch expression's type.
-  ([spec: Type switches](https://go.dev/ref/spec#Type_switches))
+### 5. Comparing interfaces
 
-### 6. Comparing interfaces
+Two interface values are equal if both are nil, or their dynamic types are identical **and** their dynamic values are equal.
+`any(1) != any(int64(1))` because the types differ. If the dynamic type is not comparable (slice, map, func), `==` compiles but **panics at run time**; using it as a map key panics with "hash of unhashable type".
+([spec: Comparison operators](https://go.dev/ref/spec#Comparison_operators))
 
-Two interface values are equal if both are nil, or they have identical dynamic types **and** equal dynamic
-values ([spec: Comparison operators](https://go.dev/ref/spec#Comparison_operators)).
+### 6. Typed nil
 
-- `any(1) == any(int64(1))` is `false`: different dynamic types.
-- If the dynamic type is not comparable (slice, map, func), `==` compiles but **panics at run time**.
-  The same happens when such a value is used as a key of `map[any]V`.
+An interface is nil only when **both** words are nil. Returning a nil `*MyErr` through an `error` result produces `{type=*MyErr, data=nil}`, which is not nil.
+([FAQ: Why is my nil error value not equal to nil?](https://go.dev/doc/faq#nil_error))
 
-### 7. nil interface vs typed nil
+### 7. Static satisfaction checks
 
-An interface is `nil` only when **both** words are empty. Returning a nil `*Circle` as `Shape`
-sets the type word, so the result is not `nil`. (This was also covered in `error_wrapping`.)
-Return a literal `nil` on the "nothing" path instead.
+`var _ Shape = (*Circle)(nil)` makes the build fail if `*Circle` stops implementing `Shape`. Because `Circle.Area` has a pointer receiver, only `*Circle` is in the method set, so `var _ Shape = Circle{}` does not compile ([spec: Method sets](https://go.dev/ref/spec#Method_sets)).
 
-## Full example
+## Example
 
-See [main.go](main.go). Run with `go run .`.
+`main.go` demonstrates all of the above. Run it:
 
-Expected output (gc compiler, Go 1.26.3, amd64):
-
-```
-== 1. an interface is two words ==
-  sizeof(Shape) = 16  sizeof(any) = 16
-  any(42): type word set = true , data word set = true
-  *(*int)(data) = 42
-== 2. assignment copies the value ==
-  original area = 100  interface area = 4
-  pointer stored: interface sees the change, area = 12
-== 3. boxing and allocation ==
-  small int (<256): 0 allocs/op
-  big int:          1 allocs/op
-  string:           1 allocs/op
-  pointer:          0 allocs/op
-  struct{}{}:       0 allocs/op
-== 4. type assertions and type switches ==
-  s.(Square) -> {3} true
-  s.(*Circle) ok = false
-  s.(fmt.Stringer) ok = false
-  describe: nil interface
-  describe: integer 5 (x is still any here: int)
-  describe: Stringer: 21.5°C
-  describe: error: boom
-  describe: other []int
-  recovered: interface conversion: main.Shape is main.Square, not *main.Circle
-== 5. optional interfaces ==
-  *strings.Reader implements io.WriterTo: true
-  wrapper implements io.WriterTo:       false (wrapping hides methods)
-== 6. comparing interface values ==
-  any(1) == any(1):         true
-  any(1) == any(int64(1)):  false
-  map[any] with 1 and "1": len = 2
-  recovered: runtime error: comparing uncomparable type []int
-== 7. nil interface vs typed nil ==
-  zero Shape == nil: true
-  find(false) == nil: false (dynamic type *main.Circle)
+```bash
+go run .
+go build -gcflags=-m . 2>&1 | grep escapes   # see which values escape when boxed
 ```
 
-Notes:
+Expected output (go1.26.3, amd64):
 
-- Section 3 numbers come from runtime optimizations and may differ on other versions or compilers.
-- The `*(*int)(data)` read in section 1 depends on the gc layout; it is for illustration only.
+```
+== 1. An interface value is two words ==
+sizeof(any)   = 16
+sizeof(Shape) = 16
+nil any: typ == nil: true data == nil: true
+same dynamic type -> same type word: true
+different values -> different data words: true
+pointer stored directly in data word: true
+
+== 2. Boxing copies the value ==
+r.Area() = 300  s.Area() = 6
+
+== 3. Boxing may allocate ==
+allocs any(int >= 256): 1
+allocs any(int < 256):  0
+allocs any(Rect):       1
+allocs any(*Circle):    0
+
+== 4. Type assertions ==
+x.(string) -> "hello", true
+x.(int)    -> 0, false (zero value, no panic)
+recovered: interface conversion: interface {} is string, not int
+strings.Reader is io.WriterTo: true  io.Writer: false
+
+== 5. Type switch ==
+nil interface
+integer 42 (x is still any here: int)
+integer 5 (x is still any here: int64)
+string of len 2
+Shape with area 4
+Shape with area 3
+other type main.Circle
+error: boom
+other type float64
+
+== 6. Comparing interfaces ==
+any(1) == any(1):        true
+any(1) == any(int64(1)): false (different dynamic types)
+recovered: runtime error: comparing uncomparable type []int
+recovered: runtime error: hash of unhashable type []int
+
+== 7. The typed-nil trap ==
+err == nil: false  dynamic type: *main.MyErr
+type word nil: false  data word nil: true
+fixed: err == nil: true
+```
+
+The allocation counts in section 3 are implementation details and may differ between Go versions or compilers.
 
 ## Common pitfalls
 
-### Pitfall 1: Typed nil makes a non-nil interface
-
-```go
-func find() Shape {
-    var c *Circle
-    return c // != nil to the caller
-}
-```
-
-Fix: `return nil` explicitly. Be careful with `error` in particular.
-
-### Pitfall 2: `==` on interfaces can panic
-
-`var x, y any = []int{1}, []int{1}; x == y` compiles and panics. The same applies to `map[any]T` keys
-and to structs that contain an interface field. If values can be slices or maps, use `reflect.DeepEqual`
-or compare in a type-specific way.
-
-### Pitfall 3: Wrappers hide optional interfaces
-
-If you wrap an `http.ResponseWriter` (for logging, metrics) with a struct that only embeds the
-`http.ResponseWriter` interface, the wrapper no longer has `Flush`, so `w.(http.Flusher)` fails and
-streaming silently stops working. Go 1.20 added `http.ResponseController`, which looks for an
-`Unwrap() http.ResponseWriter` method on wrappers
-([net/http.ResponseController](https://pkg.go.dev/net/http#ResponseController)).
+1. **Typed nil errors.** Never return a typed nil pointer through an interface result. Return a literal `nil`. `go vet` does not catch this; `nilness` / staticcheck can catch some cases.
+2. **Run-time panics from `==` and map keys.** `any` keys and interface comparisons compile fine even if a caller passes a slice. Use `reflect.TypeOf(v).Comparable()` to check first, or avoid `map[any]`.
+3. **Hidden allocations.** `fmt.Println(x)`, `slog.Any`, `ctx.Value` and `[]any` all box their arguments. In hot paths, prefer concrete types, generics, or pointer values (and remember that `x.(T)` on a non-pointer value gives you a copy).
 
 ## Exercise
 
-Write a small `Logger` interface with one method `Log(msg string)`, and two implementations:
-`ConsoleLogger` (value receiver) and `*BufferLogger` (pointer receiver, stores messages in a slice).
+Write a function `func SameValue(a, b any) (equal bool, err error)` that:
 
-1. Add compile-time checks for both. Try `var _ Logger = BufferLogger{}` and read the compiler error.
-2. Add an optional interface `Flusher { Flush() error }` that only `*BufferLogger` implements.
-   Write `func Close(l Logger) error` that calls `Flush` if the logger supports it.
-3. Write a `PrefixLogger` that wraps another `Logger`. Make sure `Close(PrefixLogger{...})` still flushes
-   the inner logger (hint: think about how `http.ResponseController` uses `Unwrap`).
-4. Use `testing.AllocsPerRun` to measure how many allocations `l.Log("hi")` costs for each implementation,
-   and explain the result with what you learned in section 3.
+- returns `false, nil` when the dynamic types differ,
+- returns an error (instead of panicking) when the dynamic type is not comparable,
+- treats `[]byte` as a special case and compares the contents with `bytes.Equal`.
+
+Then use `testing.AllocsPerRun` to measure how many allocations `SameValue(Rect{1,2}, Rect{1,2})` performs, and explain the number.
 
 ## References
 
-- Spec, Interface types: https://go.dev/ref/spec#Interface_types
-- Spec, Method sets: https://go.dev/ref/spec#Method_sets
-- Spec, Type assertions: https://go.dev/ref/spec#Type_assertions
-- Spec, Type switches: https://go.dev/ref/spec#Type_switches
-- Spec, Comparison operators: https://go.dev/ref/spec#Comparison_operators
-- FAQ, Why is my nil error value not equal to nil?: https://go.dev/doc/faq#nil_error
-- Effective Go, Interfaces: https://go.dev/doc/effective_go#interfaces
-- Russ Cox, Go Data Structures: Interfaces (older, but the model still applies): https://research.swtch.com/interfaces
+- [The Go Programming Language Specification: Interface types](https://go.dev/ref/spec#Interface_types)
+- [Go FAQ: nil error](https://go.dev/doc/faq#nil_error)
+- [Russ Cox: Go Data Structures: Interfaces](https://research.swtch.com/interfaces) (2009; the core idea still holds, details changed)
+- Runtime source: [`runtime/iface.go`](https://go.dev/src/runtime/iface.go), [`runtime/runtime2.go`](https://go.dev/src/runtime/runtime2.go)
