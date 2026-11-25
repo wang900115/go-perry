@@ -113,6 +113,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `generic_hash` | Generic hash table implementation and hash-based data structure experiments. |
 | `slice_internals` | How slices work: header (ptr/len/cap), shared backing arrays, `append` aliasing and the `s[lo:hi:max]` / `slices.Clip` fix, `runtime.growslice` growth and size classes, Go 1.22 `slices.Delete` tail zeroing, and memory retention by sub-slices. |
 | `string_utf8` | Strings as read-only bytes: `len` vs rune count, `range` decoding UTF-8, invalid bytes and `U+FFFD`, `[]byte`/`[]rune` conversion costs, rune-safe truncation, `strings.Builder` vs `+=`, and combining characters. |
+| `regexp_re2` | Regular expressions with the RE2 engine: unanchored matching, the `Find(All)?(String)?(Submatch)?(Index)?` family, named groups, `${name}` replacements and the `$1x` pitfall, leftmost-first vs `Longest()`, flags, no backreferences/lookaround, linear-time matching, `QuoteMeta`, and concurrent use. |
 | `generics_constraints` | Generics: type parameters and inference, constraints as type sets (`any`, `comparable`, `cmp.Ordered`, unions, `~`), the `S ~[]E` pattern, generic types whose methods cannot add type parameters, inference limits, `comparable` run-time panics with interfaces, and Go 1.26 self-referential constraints. |
 | `map_semantics` | Map language semantics: `nil` map reads vs write panics, pointer-like sharing and `maps.Clone`, comma-ok lookups, randomized iteration order and `slices.Sorted(maps.Keys(m))`, non-addressable elements, mutation during `range`, NaN keys and `clear`, the set idiom, and the unrecoverable concurrent-write fatal error. |
 
@@ -168,7 +169,6 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `text_template` | `text/template` and `html/template`: actions, whitespace trimming, pipelines, `FuncMap`, `define`/`block` with `Clone`, `missingkey=error`, partial output on errors, and context-aware auto-escaping. |
 | `struct_embedding` | Struct embedding as composition: field/method promotion, method sets when embedding `T` vs `*T`, shadowing is not overriding, the depth rule and ambiguous selectors, embedding an interface as a decorator, the `sync.Mutex` API leak, and JSON flattening. |
 | `closures_loopvar` | Closures capture variables, not values: heap-allocated closure state, capture-by-value optimization, Go 1.22 per-iteration loop variables and 3-clause copy semantics, goroutines in loops, method values and `defer` evaluating early, and the `go.mod` version gate. |
-| `interface_values` | Interface values as two words (`itab`/type + data): copy-on-assign, boxing allocations and the small-integer optimization, method sets and compile-time checks, type assertions and switches, optional interfaces hidden by wrappers, `==` panics on uncomparable dynamic types, and typed nil. |
 
 The topic list is continuously evolving. New topics are welcome.
 
