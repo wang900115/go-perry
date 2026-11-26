@@ -116,6 +116,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `regexp_re2` | Regular expressions with the RE2 engine: unanchored matching, the `Find(All)?(String)?(Submatch)?(Index)?` family, named groups, `${name}` replacements and the `$1x` pitfall, leftmost-first vs `Longest()`, flags, no backreferences/lookaround, linear-time matching, `QuoteMeta`, and concurrent use. |
 | `generics_constraints` | Generics: type parameters and inference, constraints as type sets (`any`, `comparable`, `cmp.Ordered`, unions, `~`), the `S ~[]E` pattern, generic types whose methods cannot add type parameters, inference limits, `comparable` run-time panics with interfaces, and Go 1.26 self-referential constraints. |
 | `map_semantics` | Map language semantics: `nil` map reads vs write panics, pointer-like sharing and `maps.Clone`, comma-ok lookups, randomized iteration order and `slices.Sorted(maps.Keys(m))`, non-addressable elements, mutation during `range`, NaN keys and `clear`, the set idiom, and the unrecoverable concurrent-write fatal error. |
+| `container_heap` | Priority queues with `container/heap`: the `heap.Interface` contract (your `Push`/`Pop` only grow/shrink the slice), `Init`/`Push`/`Pop` costs, index tracking for `heap.Fix`/`heap.Remove`, the direct `h.Push` pitfall, unstable ordering and sequence-number tie-breaks, and a bounded top-K min-heap. |
 
 ### 📦 Serialization
 
