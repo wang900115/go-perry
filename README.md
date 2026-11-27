@@ -128,6 +128,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `capProto` | Cap'n Proto schema-based binary serialization and generated Go code examples. |
 | `cbor` | CBOR and Canonical CBOR serialization examples, including deterministic encoding and hashing. |
 | `convert` | Type conversion and data format conversion examples. |
+| `encoding_binary` | `encoding/binary`: big- vs little-endian `PutUint32`/`AppendUint32`, fixed-size struct `Write`/`Read` and why `int` is rejected, `binary.Size` vs `unsafe.Sizeof` padding, Go 1.23 `Encode`/`Decode`/`Append`, uvarint and zigzag varint sizes, `Uvarint` `n` error signalling, and capped length-prefixed framing. |
 
 ### 🔐 Security
 
