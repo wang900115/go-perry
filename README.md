@@ -171,6 +171,7 @@ Each directory generally represents a technical topic, implementation exercise, 
 | `text_template` | `text/template` and `html/template`: actions, whitespace trimming, pipelines, `FuncMap`, `define`/`block` with `Clone`, `missingkey=error`, partial output on errors, and context-aware auto-escaping. |
 | `struct_embedding` | Struct embedding as composition: field/method promotion, method sets when embedding `T` vs `*T`, shadowing is not overriding, the depth rule and ambiguous selectors, embedding an interface as a decorator, the `sync.Mutex` API leak, and JSON flattening. |
 | `closures_loopvar` | Closures capture variables, not values: heap-allocated closure state, capture-by-value optimization, Go 1.22 per-iteration loop variables and 3-clause copy semantics, goroutines in loops, method values and `defer` evaluating early, and the `go.mod` version gate. |
+| `time_values` | `time.Time` values: reference-time layouts and silent layout mistakes, `Parse` vs `ParseInLocation`, the monotonic clock reading and `Round(0)`, `Equal` vs `==` and map keys, `AddDate` normalization, DST-aware `Add` vs `AddDate`, and embedding `time/tzdata` for Windows. |
 
 The topic list is continuously evolving. New topics are welcome.
 
